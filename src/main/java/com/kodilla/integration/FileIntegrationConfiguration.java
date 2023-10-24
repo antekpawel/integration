@@ -1,10 +1,15 @@
 package com.kodilla.integration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.dsl.*;
 import org.springframework.integration.file.FileReadingMessageSource;
 import org.springframework.integration.file.FileWritingMessageHandler;
+import org.springframework.integration.file.dsl.FileWritingMessageHandlerSpec;
+import org.springframework.integration.file.dsl.Files;
+import org.springframework.integration.file.support.FileExistsMode;
+import org.springframework.messaging.MessageHandler;
 
 import java.io.File;
 
@@ -15,11 +20,16 @@ import java.io.File;
 @Configuration
 public class FileIntegrationConfiguration
 {
+  @Value("${inputDirectory}")
+  private String inputDirectory;
+  @Value("${outputFilePath}")
+  private String outputFilePath;
+
   @Bean
   IntegrationFlow fileIntegrationFlow(
     FileReadingMessageSource fileAdapter,
     FileTransformer transformer,
-    FileWritingMessageHandler outputFileHandler) {
+    MessageHandler outputFileHandler) {
 
     return IntegrationFlows.from(fileAdapter, config -> config.poller(Pollers.fixedDelay(1000)))
       .transform(transformer, "transformFile")
@@ -30,7 +40,7 @@ public class FileIntegrationConfiguration
   @Bean
   FileReadingMessageSource fileAdapter() {
     FileReadingMessageSource fileSource = new FileReadingMessageSource();
-    fileSource.setDirectory(new File("data/input"));
+    fileSource.setDirectory(new File(inputDirectory));
 
     return fileSource;
   }
@@ -40,12 +50,11 @@ public class FileIntegrationConfiguration
     return new FileTransformer();
   }
 
-  @Bean
-  FileWritingMessageHandler outputFileAdapter() {
-    File directory = new File("data/output");
-    FileWritingMessageHandler handler = new FileWritingMessageHandler(directory);
-    handler.setExpectReply(false);
 
-    return handler;
+  @Bean
+  MessageHandler outputFileHandler() {
+    return message -> {
+      // ta metoda nic nie robi
+    };
   }
 }

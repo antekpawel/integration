@@ -1,9 +1,13 @@
 package com.kodilla.integration;
 
+import org.springframework.beans.factory.annotation.Value;
+
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * User: Z6PWA
@@ -11,15 +15,22 @@ import java.util.List;
  */
 public class FileTransformer
 {
-  public String transformFile(String fileName) throws IOException
-  {
-    List<String> lines = Files.readAllLines(Paths.get(fileName));
-    StringBuilder result = new StringBuilder();
+  @Value("${inputDirectory}")
+  private String inputDirectory;
+  @Value("${outputFilePath}")
+  private String outputFilePath;
 
-    for (int n = lines.size() - 1; n >= 0; n--) {
-      result.append(lines.get(n) + "\n");
+  public String transformFile() {
+    List<String> collect = Stream.of(new File(inputDirectory).listFiles())
+      .filter(file -> !file.isDirectory())
+      .map(File::getName)
+      .toList();
+
+    try {
+      Files.write(Paths.get(outputFilePath + "results.txt"), collect);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
-
-    return result.toString();
+    return collect.toString();
   }
 }
